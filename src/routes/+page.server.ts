@@ -1,5 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import db from '$lib/db'; // Replace 'your-request-library' with the actual library you are using for the request object
+import { pb } from '$lib/pb'; // Replace 'your-request-library' with the actual library you are using for the request object
 
 export const load = (async () => {
   return {};
@@ -12,7 +12,7 @@ export const actions: Actions = {
     const password = data.get('password');
     const username = data.get('username');
 
-    const user = await db.sql(`
+    const user = await pb.sql(`
       USE DATABASE auth-demo
       DECRYPT DATABASE auth-demo
       INSERT INTO users (username, password, email) VALUES (?, ?, ?)
@@ -22,5 +22,12 @@ export const actions: Actions = {
     return { user };
   },
   login: async ({ }) => {},
-  logout: async ({ }) => {},
+  logout: async ({ }) => { pb.authStore.clear() },
+  oauth: async ({ }) => {
+    const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' })
+
+    console.log(pb.authStore.isValid);
+    console.log(pb.authStore.token);
+    console.log(pb.authStore.model.id);
+  },
 };
